@@ -161,9 +161,7 @@ const SearchBar = ({ items }: SearchBarProps) => {
               ))}
             </VStack>
           ) : (
-            <Box p='10px'>
-              <Text>No results found</Text>
-            </Box>
+            <Text  textAlign='center' fontSize='13px'>No results found</Text>
           )}
         </Box>
       )}
