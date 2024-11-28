@@ -39,6 +39,7 @@ const ImageSlider = ({
       gap={{ base: '20px', md: '30px', lg: '45px' }}
     >
       <Box
+        className='overflow-visible'
         sx={{
           '.slick-list': {
             overflow: 'visible',

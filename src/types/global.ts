@@ -2,7 +2,8 @@ export type Modals =
   | 'imageAndText'
   | 'videoGallery'
   | 'imageSlider'
-  | 'imageAndVideo';
+  | 'imageAndVideo'
+  | 'verticalVideos';
 
 export interface Modal {
   type: Modals;
@@ -19,11 +20,20 @@ export interface Location {
   y: number;
   parent: Parent | null;
   modal: Modal;
+  preview?: string;
 }
+
+export enum LocationTypeEnum {
+  onCampus = 'onCampus',
+  offCampus = 'offCampus'
+}
+
+export type locationType = LocationTypeEnum;
 
 export interface SidebarChildrenItem {
   id: string;
   label: string;
+  type: locationType;
   location: Location;
 }
 
@@ -61,3 +71,5 @@ export interface SearchResult {
   item: SidebarItem | SidebarChildrenItem;
   parent: SidebarItem | null;
 }
+
+export type labelPositionType = 'left' | 'right';

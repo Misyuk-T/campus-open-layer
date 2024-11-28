@@ -4,7 +4,6 @@ import * as path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/campus-open-layer",
   plugins: [react()],
   resolve: {
     alias: {

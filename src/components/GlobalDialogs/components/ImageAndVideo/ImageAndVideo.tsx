@@ -58,6 +58,7 @@ const ImageAndVideo = ({
       <Flex
         color='white'
         flexWrap={{ base: 'wrap', '3xl': 'nowrap' }}
+        alignItems='flex-start'
         gap='30px'
       >
         <Stack width={{ '3xl': '45%' }}>
@@ -79,7 +80,6 @@ const ImageAndVideo = ({
           color='white'
           bg='gray.750'
           width={{ base: '100%', '3xl': '55%' }}
-          height='100%'
         >
           <Image
             src={info.img.url}

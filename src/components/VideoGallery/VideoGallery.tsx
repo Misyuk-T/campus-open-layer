@@ -7,9 +7,6 @@ import { AspectRatio, Box, Flex, StyleProps, VStack } from '@chakra-ui/react';
 
 import { CustomPlayButton } from './components';
 
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-
 interface VideoGalleryProps {
   videoUrls: VideoData[];
   sliderOptions?: Settings;

@@ -7,6 +7,9 @@ import { SidebarChildrenItem, SidebarItem } from '@src/types/global';
 
 import {
   Accordion,
+  AccordionButton,
+  AccordionItem,
+  AccordionPanel,
   Button,
   Drawer,
   DrawerBody,
@@ -15,7 +18,8 @@ import {
   Flex,
   IconButton,
   Stack,
-  Text
+  Text,
+  useBreakpointValue
 } from '@chakra-ui/react';
 
 import { MenuItem } from '../MenuItem';
@@ -35,11 +39,17 @@ const BurgerMenu = ({
 }: BurgerMenuProps) => {
   const dispatch = useAppDispatch();
   const { modals } = useAppSelector((state) => state.modals);
+  const { selectedMenuItem } = useAppSelector((state) => state.sideMenu);
 
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   const isSomeModalOpen = Object.values(modals).some((modal) => modal);
   const shouldRenderSubHeader = activeLocation && isSomeModalOpen;
+
+  const activeIndex = selectedMenuItem
+    ? items.findIndex((item) => item.id === selectedMenuItem.id) + 1
+    : -1;
 
   const handleMenuItemSelect = (item: SidebarItem) => {
     onSelectMenuItem(item);
@@ -58,10 +68,10 @@ const BurgerMenu = ({
   };
 
   useEffect(() => {
-    if (!isSomeModalOpen) {
+    if (!isSomeModalOpen && isMobile) {
       dispatch(setActiveLocation(null));
     }
-  }, [dispatch, isSomeModalOpen]);
+  }, [dispatch, isSomeModalOpen, isMobile]);
 
   return (
     <>
@@ -144,8 +154,13 @@ const BurgerMenu = ({
           height='auto'
           p={0}
         >
-          <DrawerBody height='auto' flex='none' px={0} py='8px'>
-            <Accordion allowToggle>
+          <DrawerBody height='auto' flex='none' px={0}>
+            <Accordion index={activeIndex}>
+              {/*TODO: Need to remove fake item from here. Its added due open/close drawer issue which expand all accordion items when active index === 0*/}
+              <AccordionItem visibility='hidden' height='0px'>
+                <AccordionButton />
+                <AccordionPanel />
+              </AccordionItem>
               {items.map((item, index) => (
                 <MenuItem
                   key={index}

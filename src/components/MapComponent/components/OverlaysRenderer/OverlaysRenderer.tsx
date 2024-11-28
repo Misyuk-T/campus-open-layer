@@ -1,6 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { SidebarChildrenItem } from '@src/types/global.ts';
+import {
+  labelPositionType,
+  LocationTypeEnum,
+  SidebarChildrenItem
+} from '@src/types/global.ts';
+import { OffCampus } from '@src/ui';
+import { MAP_IMAGE_WIDTH } from '@src/utils/constants.ts';
 import { boundingExtent } from 'ol/extent';
 import Map from 'ol/Map';
 import Overlay from 'ol/Overlay';
@@ -10,20 +16,37 @@ import { BuildingOverlay } from '../BuildingOverlay';
 interface OverlaysRendererProps {
   map: Map;
   activeLocations: SidebarChildrenItem[];
+  activeLocation: SidebarChildrenItem | null;
 }
 
-const OverlaysRenderer = ({ map, activeLocations }: OverlaysRendererProps) => {
+const CHAR_WIDTH = 4;
+const MAP_OFFSET = 200;
+const LABEL_PADDING = 20;
+
+const OverlaysRenderer = ({
+  map,
+  activeLocations,
+  activeLocation
+}: OverlaysRendererProps) => {
   const [overlays, setOverlays] = useState<Overlay[]>([]);
 
-  const isOverlayRender = activeLocations.length > 0 && overlays.length > 0;
+  const onCampusLocations = useMemo(
+    () =>
+      activeLocations.filter((item) => item.type === LocationTypeEnum.onCampus),
+    [activeLocations]
+  );
+  const offCampusLocations = useMemo(
+    () =>
+      activeLocations.filter(
+        (item) => item.type === LocationTypeEnum.offCampus
+      ),
+    [activeLocations]
+  );
+  const isOffCampusLocationExist = offCampusLocations.length > 0;
+  const isOverlayRender = onCampusLocations.length > 0 && overlays.length > 0;
 
   useEffect(() => {
-    overlays.forEach((overlay) => {
-      map.removeOverlay(overlay);
-    });
-    setOverlays([]);
-
-    const newOverlays = activeLocations.map((item) => {
+    const newOverlays = onCampusLocations.map((item) => {
       const overlayElement = document.createElement('div');
       const overlay = new Overlay({
         position: [item.location.x, item.location.y],
@@ -36,8 +59,8 @@ const OverlaysRenderer = ({ map, activeLocations }: OverlaysRendererProps) => {
     });
     setOverlays(newOverlays);
 
-    if (activeLocations.length > 0) {
-      const coordinates = activeLocations.map((item) => [
+    if (onCampusLocations.length > 0) {
+      const coordinates = onCampusLocations.map((item) => [
         item.location.x,
         item.location.y
       ]);
@@ -46,6 +69,7 @@ const OverlaysRenderer = ({ map, activeLocations }: OverlaysRendererProps) => {
       view.animate({
         center: [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2],
         duration: 500,
+        zoom: 16,
         easing: (t) => t * (2 - t)
       });
     }
@@ -55,22 +79,58 @@ const OverlaysRenderer = ({ map, activeLocations }: OverlaysRendererProps) => {
         map.removeOverlay(overlay);
       });
     };
-  }, [activeLocations, map]);
+  }, [onCampusLocations, map]);
+
+  useEffect(() => {
+    const isLocationValid =
+      activeLocation && activeLocation.type === LocationTypeEnum.onCampus;
+    if (map && isLocationValid) {
+      const view = map.getView();
+      const resolution = view.getResolution() || 1;
+      const labelLength = activeLocation.label.length;
+      const contentWidth =
+        labelLength * (CHAR_WIDTH * resolution) + LABEL_PADDING;
+      view.animate({
+        center: [
+          activeLocation.location.x + contentWidth,
+          activeLocation.location.y
+        ],
+        duration: 500,
+        easing: (t) => t * (2 - t)
+      });
+    }
+  }, [map, activeLocation]);
 
   return (
     <>
       {isOverlayRender &&
-        overlays.map((overlay) => {
-          const childrenItem = activeLocations.find(
+        overlays.map((overlay, index) => {
+          const childrenItem = onCampusLocations.find(
             (item) => item.id === overlay.getId()
           );
-          return childrenItem
-            ? ReactDOM.createPortal(
-                <BuildingOverlay childrenItem={childrenItem} />,
-                overlay.getElement()!
-              )
-            : null;
+          if (!childrenItem) return null;
+
+          const overlayPosition = overlay.getPosition() as [number, number];
+          const labelLength = childrenItem.label.length;
+          const approximateLabelWidth =
+            labelLength * CHAR_WIDTH + MAP_OFFSET + LABEL_PADDING;
+          const isEnoughSpaceWithMaxScale =
+            approximateLabelWidth * 2 < MAP_IMAGE_WIDTH - overlayPosition[0];
+          const labelPosition: labelPositionType = isEnoughSpaceWithMaxScale
+            ? 'right'
+            : 'left';
+
+          return ReactDOM.createPortal(
+            <BuildingOverlay
+              childrenItem={childrenItem}
+              labelPosition={labelPosition}
+              key={index}
+            />,
+            overlay.getElement()!
+          );
         })}
+
+      {isOffCampusLocationExist && <OffCampus items={offCampusLocations} />}
     </>
   );
 };

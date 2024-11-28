@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import {
+  cloneElement,
+  isValidElement,
+  ReactElement,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
-import { scroller } from 'react-scroll';
 import { OptionType } from '@src/types/global.ts';
-import { SelectField } from '@src/ui';
+import { ScrollBar, SelectField } from '@src/ui';
+import { debounce } from '@src/utils/helpers.ts';
 
 import {
   Box,
@@ -23,6 +31,8 @@ interface DialogProps extends DrawerProps {
   description?: string;
   hideDrawerClose?: boolean;
   options?: OptionType[];
+  withScroll?: boolean;
+  children: ReactElement<{ maxHeight?: number }>;
 }
 
 const Drawer = ({
@@ -32,35 +42,70 @@ const Drawer = ({
   hideDrawerClose,
   onClose,
   children,
-  ...DrawerProps
+  isOpen,
+  withScroll = true,
+  ...drawerProps
 }: DialogProps) => {
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string>('');
+  const [maxHeight, setMaxHeight] = useState<number>(0);
+  const ref = useRef(null);
+
+  const handleClose = () => {
+    onClose();
+    setSelectedOption('');
+  };
 
   const handleSelectChange = (option: OptionType | null) => {
     if (option) {
       setSelectedOption(option.value);
-      scroller.scrollTo(option.value, {
-        duration: 800,
-        delay: 0,
-        smooth: 'easeInOutQuart',
-        containerId: 'drawerBody'
-      });
     } else {
-      setSelectedOption(null);
+      setSelectedOption('');
     }
   };
 
+  const calculateMaxHeight = () => {
+    const drawerBody = document.getElementById('drawerBody');
+    if (drawerBody) {
+      const drawerBodyTop = drawerBody.getBoundingClientRect().top;
+      const availableHeight = window.innerHeight - drawerBodyTop;
+      setMaxHeight(availableHeight);
+    }
+  };
+
+  const debouncedCalculateHeight = debounce(calculateMaxHeight, 0);
+
+  const renderChildrenWithProps = () => {
+    if (isValidElement(children)) {
+      return cloneElement(children, { maxHeight });
+    }
+    return children;
+  };
+
+  useEffect(() => {
+    window.addEventListener('resize', debouncedCalculateHeight);
+    return () => {
+      window.removeEventListener('resize', debouncedCalculateHeight);
+    };
+  }, [debouncedCalculateHeight]);
+
+  useLayoutEffect(() => {
+    if (isOpen) {
+      debouncedCalculateHeight();
+    }
+  }, [isOpen]);
+
   return (
     <ChakraDrawer
-      onClose={onClose}
+      onClose={handleClose}
       size={{ base: 'full', md: 'xl' }}
       placement='right'
-      {...DrawerProps}
+      isOpen={isOpen}
+      {...drawerProps}
     >
       <DrawerOverlay />
       <DrawerContent bg='primary.150' mt={{ base: '78px', md: 0 }}>
         <IconButton
-          onClick={onClose}
+          onClick={handleClose}
           position='absolute'
           variant='outlined'
           colorScheme='white'
@@ -99,6 +144,7 @@ const Drawer = ({
                   name='exampleSelect'
                   value={selectedOption}
                   options={options}
+                  isSearchable={false}
                   placeholder='Search'
                   onChange={handleSelectChange}
                 />
@@ -106,16 +152,35 @@ const Drawer = ({
             )}
           </Flex>
         </DrawerHeader>
+
         <DrawerBody
+          ref={ref}
           id='drawerBody'
           mt='20px'
-          py={0}
-          px={{ base: '25px', sm: '30px', xl: '40px', '2xl': '60px' }}
-          height='100%'
-          overflowY='auto'
+          p={0}
           overflowX='hidden'
+          overflowY='hidden'
         >
-          {children}
+          {withScroll ? (
+            <ScrollBar
+              maxHeight={maxHeight ? `${maxHeight}px` : 'auto'}
+              classToScroll={selectedOption}
+            >
+              <Flex
+                px={{ base: '25px', sm: '30px', xl: '40px', '2xl': '60px' }}
+                overflowX='hidden'
+              >
+                {renderChildrenWithProps()}
+              </Flex>
+            </ScrollBar>
+          ) : (
+            <Flex
+              maxHeight={maxHeight ? `${maxHeight}px` : 'auto'}
+              overflow='hidden'
+            >
+              {renderChildrenWithProps()}
+            </Flex>
+          )}
         </DrawerBody>
       </DrawerContent>
     </ChakraDrawer>

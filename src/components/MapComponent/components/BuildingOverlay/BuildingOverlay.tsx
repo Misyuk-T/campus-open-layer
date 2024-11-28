@@ -3,23 +3,30 @@ import { LiaPlusSolid } from 'react-icons/lia';
 import { useAppDispatch, useAppSelector } from '@src/store/hooks';
 import { setActiveLocation } from '@src/store/reducers/locations';
 import { openModalByType } from '@src/store/reducers/modals.ts';
-import { SidebarChildrenItem } from '@src/types/global.ts';
+import { labelPositionType, SidebarChildrenItem } from '@src/types/global.ts';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { Button, Flex, IconButton } from '@chakra-ui/react';
+import { Button, Flex, IconButton, Text } from '@chakra-ui/react';
 
-// @ts-expect-error - framer-motion types are not up-to-date.
 // Type error after fix https://github.com/chakra-ui/chakra-ui/issues/4561
+// @ts-expect-error - framer-motion types are not up-to-date.
 const MotionButton = motion(Button);
+// @ts-expect-error - framer-motion types are not up-to-date.
+const MotionText = motion(Text);
 
 interface BuildingOverlayProps {
   childrenItem: SidebarChildrenItem;
+  labelPosition?: labelPositionType;
 }
 
-const BuildingOverlay = ({ childrenItem }: BuildingOverlayProps) => {
+const BuildingOverlay = ({
+  childrenItem,
+  labelPosition = 'right'
+}: BuildingOverlayProps) => {
   const dispatch = useAppDispatch();
   const { activeLocation } = useAppSelector((state) => state.locations);
 
+  const isRightPlacement = labelPosition === 'right';
   const isOpen = activeLocation?.id === childrenItem.id;
   const modalType = childrenItem.location.modal;
 
@@ -37,7 +44,7 @@ const BuildingOverlay = ({ childrenItem }: BuildingOverlayProps) => {
   };
 
   return (
-    <Flex alignItems='center' position='absolute' left='-18px' width='100%'>
+    <Flex alignItems='center' position='relative'>
       <IconButton
         aria-label='Toggle Building Info'
         variant='filled'
@@ -84,34 +91,43 @@ const BuildingOverlay = ({ childrenItem }: BuildingOverlayProps) => {
       />
 
       <AnimatePresence>
-        {isOpen && (
-          <MotionButton
-            color='white'
-            colorScheme='blue'
-            fontWeight='semibold'
-            size='lg'
-            minWidth='none'
-            ml='-1px'
-            px='17px'
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 'auto', opacity: 1 }}
-            transition={{ duration: 0.15 }}
-            exit={{ opacity: 0, visibility: 'hidden' }}
-            onClick={handleClick}
+        <MotionButton
+          visibility={isOpen ? 'visible' : 'hidden'}
+          color='white'
+          colorScheme='blue'
+          fontWeight='semibold'
+          size='lg'
+          minWidth='none'
+          px='17px'
+          position='absolute'
+          left={isRightPlacement ? '100%' : 'auto'}
+          right={isRightPlacement ? 'auto' : '100%'}
+          ml={isRightPlacement ? '-1px' : 0}
+          mr={isRightPlacement ? 0 : '-1px'}
+          initial={{
+            width: 0,
+            opacity: 0
+          }}
+          animate={{
+            width: 'auto',
+            opacity: 1
+          }}
+          transition={{ duration: 0.2 }}
+          pointerEvents={isOpen ? 'auto' : 'none'}
+          onClick={handleClick}
+        >
+          <MotionText
+            visibility={isOpen ? 'visible' : 'hidden'}
+            color={isOpen ? 'white' : 'transparent'}
+            initial={{ opacity: 0, visibility: 'hidden' }}
+            animate={{ opacity: 1, visibility: 'visible' }}
+            transition={{
+              duration: isOpen ? 0.2 : 0
+            }}
           >
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, visibility: 'visible' }}
-              exit={{ opacity: 0, visibility: 'hidden' }}
-              transition={{
-                duration: isOpen ? 0.2 : 0,
-                delay: isOpen ? 0.2 : 0
-              }}
-            >
-              {childrenItem.label}
-            </motion.span>
-          </MotionButton>
-        )}
+            {childrenItem.label}
+          </MotionText>
+        </MotionButton>
       </AnimatePresence>
     </Flex>
   );

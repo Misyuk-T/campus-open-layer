@@ -13,7 +13,8 @@ const initialModalState: ModalsType = {
   imageAndText: false,
   videoGallery: false,
   imageSlider: false,
-  imageAndVideo: false
+  imageAndVideo: false,
+  verticalVideos: false
 };
 
 const initialState: ModalStore = {

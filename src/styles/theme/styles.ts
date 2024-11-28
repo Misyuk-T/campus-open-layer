@@ -12,31 +12,33 @@ const styles = {
       flexGrow: 1
     },
 
-    '.slick-slider': {
-      height: '100%',
-      width: '100%',
-
-      '.slick-list': {
-        height: '100% !important'
-      },
-
-      '.slick-track': {
+    '.overflow-visible': {
+      '.slick-slider': {
         height: '100%',
-        display: 'flex'
-      },
+        width: '100%',
 
-      '.slick-slide': {
-        height: 'auto',
-        overflow: 'hidden'
-      },
-
-      '.slick-slide > div, .slick-slide > div > div, .slick-slide > div > div > img':
-        {
-          height: '100%'
+        '.slick-list': {
+          height: '100% !important'
         },
 
-      '.slick-slide > div > img': {
-        objectFit: 'cover'
+        '.slick-track': {
+          height: '100%',
+          display: 'flex'
+        },
+
+        '.slick-slide': {
+          height: 'auto',
+          overflow: 'hidden'
+        },
+
+        '.slick-slide > div, .slick-slide > div > div, .slick-slide > div > div > img':
+          {
+            height: '100%'
+          },
+
+        '.slick-slide > div > img': {
+          objectFit: 'cover'
+        }
       }
     }
   }

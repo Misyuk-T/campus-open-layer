@@ -4,6 +4,11 @@ import { FaPlus } from 'react-icons/fa';
 import { items } from '@src/components/Navigation/mocks.ts';
 import { useAppSelector } from '@src/store/hooks';
 import { SearchBar } from '@src/ui';
+import {
+  BURGER_HEADER_MOBILE_HEIGHT,
+  MAP_IMAGE_HEIGHT,
+  MAP_IMAGE_WIDTH
+} from '@src/utils/constants.ts';
 import { defaults as defaultControls } from 'ol/control';
 import { getCenter } from 'ol/extent';
 import ImageLayer from 'ol/layer/Image';
@@ -20,12 +25,29 @@ import 'ol/ol.css';
 import MapImage from '/map.jpg';
 
 const MapComponent = () => {
-  const { activeLocations } = useAppSelector((state) => state.locations);
+  const { activeLocations, activeLocation } = useAppSelector(
+    (state) => state.locations
+  );
+
   const mapElement = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<Map | null>(null);
 
+  const handleZoom = (type: 'in' | 'out') => () => {
+    const value = type === 'in' ? 1 : -1;
+    if (map) {
+      const view = map.getView();
+      const zoom = view.getZoom();
+      if (zoom !== undefined) {
+        view.animate({
+          zoom: zoom + value,
+          duration: 300
+        });
+      }
+    }
+  };
+
   useEffect(() => {
-    const extent: [number, number, number, number] = [0, 0, 4096, 2104];
+    const extent: number[] = [0, 0, MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT];
     const imageLayer = new ImageLayer({
       source: new ImageStatic({
         url: MapImage,
@@ -42,7 +64,10 @@ const MapComponent = () => {
       }),
       view: new View({
         center: getCenter(extent),
+        enableRotation: false,
         zoom: 0,
+        maxZoom: 16,
+        minZoom: 0,
         minResolution: 0.3,
         extent: extent,
         smoothExtentConstraint: false,
@@ -55,26 +80,42 @@ const MapComponent = () => {
     };
   }, []);
 
-  const handleZoom = (type: 'in' | 'out') => () => {
-    const value = type === 'in' ? 1 : -1;
-    if (map) {
-      const view = map.getView();
-      const zoom = view.getZoom();
-      if (zoom !== undefined) {
-        view.animate({
-          zoom: zoom + value,
-          duration: 300
-        });
-      }
-    }
-  };
-
   return (
-    <Box w='100%' h='100vh' bg='gray.100' position='relative'>
-      <Box ref={mapElement} width='100%' height='100vh' />
-      {map && <OverlaysRenderer map={map} activeLocations={activeLocations} />}
-      <Box position='absolute' top='10px' right='10px' zIndex='10'>
+    <Box
+      w='100%'
+      h={{
+        base: `calc(100vh - ${BURGER_HEADER_MOBILE_HEIGHT}px)`,
+        sm: `calc(100vh - ${BURGER_HEADER_MOBILE_HEIGHT}px)`,
+        md: '100vh'
+      }}
+      bg='gray.100'
+      // iOS fix
+      minHeight='-webkit-fill-available'
+      maxHeight='-webkit-fill-available'
+      position='relative'
+    >
+      <Box ref={mapElement} width='100%' height='100%' />
+      {map && (
+        <OverlaysRenderer
+          map={map}
+          activeLocations={activeLocations}
+          activeLocation={activeLocation}
+        />
+      )}
+      <Box
+        position='absolute'
+        width={{ base: '100%', sm: 'auto' }}
+        top={{ base: 0, sm: '10px' }}
+        right={{ base: '0', sm: '10px' }}
+        zIndex='10'
+      >
         <Flex alignItems='center' bg='white'>
+          <IconButton
+            aria-label='zoom out'
+            size='lg'
+            onClick={handleZoom('out')}
+            icon={<FaMinus />}
+          />
           <IconButton
             aria-label='zoom in'
             size='lg'
@@ -82,13 +123,10 @@ const MapComponent = () => {
             mr='-1px'
             icon={<FaPlus />}
           />
-          <IconButton
-            aria-label='zoom out'
-            size='lg'
-            onClick={handleZoom('out')}
-            icon={<FaMinus />}
-          />
-          <SearchBar items={items} />
+
+          <Box width={{ base: '100%', sm: '230px' }}>
+            <SearchBar items={items} />
+          </Box>
         </Flex>
       </Box>
     </Box>

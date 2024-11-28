@@ -7,6 +7,7 @@ import Select, {
   components,
   CSSObjectWithLabel,
   DropdownIndicatorProps,
+  MenuListProps,
   OptionProps,
   Props as SelectProps,
   SingleValue
@@ -14,6 +15,7 @@ import Select, {
 import makeAnimated from 'react-select/animated';
 import { AdobeClean } from '@src/styles/theme/fonts.ts';
 import { OptionType } from '@src/types/global.ts';
+import { ScrollBar } from '@src/ui/ScrollBar';
 
 import { useTheme } from '@chakra-ui/react';
 
@@ -36,6 +38,17 @@ const IconOption: FC<OptionProps<OptionType, false>> = (props) => {
       {label}
       {isSelected && <AiOutlineCheck width={11} height={11} />}
     </components.Option>
+  );
+};
+
+const MenuList: FC<MenuListProps<OptionType, false>> = ({
+  children,
+  ...props
+}) => {
+  return (
+    <components.MenuList {...props}>
+      <ScrollBar maxHeight='300px'>{children}</ScrollBar>
+    </components.MenuList>
   );
 };
 
@@ -87,7 +100,8 @@ const SelectField: FC<SelectFieldProps> = ({
       components={{
         ...animatedComponents,
         DropdownIndicator,
-        Option: IconOption
+        Option: IconOption,
+        MenuList: MenuList
       }}
       options={options}
       placeholder={placeholder}

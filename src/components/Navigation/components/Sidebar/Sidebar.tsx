@@ -1,7 +1,14 @@
 import { useAppSelector } from '@src/store/hooks.ts';
 import { SidebarChildrenItem, SidebarItem } from '@src/types/global.ts';
 
-import { Accordion, Box, Text } from '@chakra-ui/react';
+import {
+  Accordion,
+  AccordionButton,
+  AccordionItem,
+  AccordionPanel,
+  Box,
+  Text
+} from '@chakra-ui/react';
 
 import { MenuItem } from '../MenuItem';
 
@@ -19,11 +26,18 @@ const Sidebar = ({
   const { selectedMenuItem } = useAppSelector((state) => state.sideMenu);
 
   const activeIndex = selectedMenuItem
-    ? items.findIndex((item) => item.id === selectedMenuItem.id)
+    ? items.findIndex((item) => item.id === selectedMenuItem.id) + 1
     : -1;
 
   return (
-    <Box width='250px' color='white' bg='gray.700' mr='auto' flex='1 0 auto'>
+    <Box
+      width='250px'
+      color='white'
+      bg='gray.700'
+      mr='auto'
+      flex='1 0 auto'
+      zIndex={11}
+    >
       <Box py='24px' px='8px'>
         <Text
           fontFamily='primary'
@@ -36,6 +50,11 @@ const Sidebar = ({
       </Box>
 
       <Accordion index={activeIndex}>
+        {/*TODO: Need to remove fake item from here. Its added due resize issue which expand all accordion items when active index === 0*/}
+        <AccordionItem visibility='hidden' height='0px'>
+          <AccordionButton />
+          <AccordionPanel />
+        </AccordionItem>
         {items.map((item, index) => {
           return (
             <MenuItem

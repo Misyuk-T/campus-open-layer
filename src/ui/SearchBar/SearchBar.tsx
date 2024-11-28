@@ -5,12 +5,15 @@ import {
   setActiveLocation,
   setActiveLocations
 } from '@src/store/reducers/locations.ts';
+import { openModalByType } from '@src/store/reducers/modals.ts';
 import { setSelectedMenuItem } from '@src/store/reducers/sideMenu.ts';
 import {
+  LocationTypeEnum,
   SearchResult,
   SidebarChildrenItem,
   SidebarItem
 } from '@src/types/global.ts';
+import { ScrollBar } from '@src/ui/ScrollBar';
 import { searchItems } from '@src/utils/helpers.ts';
 
 import {
@@ -62,6 +65,9 @@ const SearchBar = ({ items }: SearchBarProps) => {
 
   const handleSelectLocation = (item: SidebarChildrenItem | null) => {
     dispatch(setActiveLocation(item));
+    if (item?.type === LocationTypeEnum.offCampus) {
+      dispatch(openModalByType(item?.location.modal.type));
+    }
   };
 
   const handleSelectMenuItem = (item: SidebarItem) => {
@@ -93,7 +99,7 @@ const SearchBar = ({ items }: SearchBarProps) => {
   });
 
   return (
-    <Box position='relative' width='230px' ref={searchRef}>
+    <Box position='relative' width='100%' ref={searchRef}>
       <InputGroup>
         <Input
           placeholder='Search the campus map'
@@ -114,7 +120,8 @@ const SearchBar = ({ items }: SearchBarProps) => {
           }}
           _focus={{
             border: 'none',
-            outline: 'none'
+            outline: 'none',
+            boxShadow: 'none'
           }}
         />
         <InputRightElement width='36px' height='36px'>
@@ -135,34 +142,38 @@ const SearchBar = ({ items }: SearchBarProps) => {
           py='10px'
           overflowY='auto'
         >
-          {filteredItems.length > 0 ? (
-            <VStack spacing={0} align='stretch'>
-              {filteredItems.map(({ item, parent }, index) => (
-                <Button
-                  key={index}
-                  onClick={handleClickItem(item, parent)}
-                  variant='link'
-                  w='100%'
-                  px='15px'
-                  py='4px'
-                  color='primary.150'
-                  fontSize='12px'
-                  fontWeight={500}
-                >
-                  <Text
-                    textAlign='left'
-                    lineHeight='120%'
+          <ScrollBar maxHeight='150px'>
+            {filteredItems.length > 0 ? (
+              <VStack spacing={0} align='stretch'>
+                {filteredItems.map(({ item, parent }, index) => (
+                  <Button
+                    key={index}
+                    onClick={handleClickItem(item, parent)}
+                    variant='link'
                     w='100%'
-                    whiteSpace='wrap'
+                    px='15px'
+                    py='4px'
+                    color='primary.150'
+                    fontSize='12px'
+                    fontWeight={500}
                   >
-                    {item.label}
-                  </Text>
-                </Button>
-              ))}
-            </VStack>
-          ) : (
-            <Text  textAlign='center' fontSize='13px'>No results found</Text>
-          )}
+                    <Text
+                      textAlign='left'
+                      lineHeight='120%'
+                      w='100%'
+                      whiteSpace='wrap'
+                    >
+                      {item.label}
+                    </Text>
+                  </Button>
+                ))}
+              </VStack>
+            ) : (
+              <Text fontSize='12px' textAlign='center' fontWeight='500'>
+                No results found
+              </Text>
+            )}
+          </ScrollBar>
         </Box>
       )}
     </Box>

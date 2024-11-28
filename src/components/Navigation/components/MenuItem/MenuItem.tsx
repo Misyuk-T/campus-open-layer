@@ -1,6 +1,11 @@
 import { IoTriangle } from 'react-icons/io5';
-import { useAppSelector } from '@src/store/hooks.ts';
-import { SidebarChildrenItem, SidebarItem } from '@src/types/global.ts';
+import { useAppDispatch, useAppSelector } from '@src/store/hooks.ts';
+import { openModalByType } from '@src/store/reducers/modals.ts';
+import {
+  LocationTypeEnum,
+  SidebarChildrenItem,
+  SidebarItem
+} from '@src/types/global.ts';
 
 import {
   AccordionButton,
@@ -23,9 +28,11 @@ const MenuItem = ({
   onSelectLocation,
   onSelectMenuItem
 }: SidebarTabProps) => {
+  const dispatch = useAppDispatch();
   const { modals } = useAppSelector((state) => state.modals);
   const { activeLocation } = useAppSelector((state) => state.locations);
 
+  const isOffCampusItem = tab.label.includes('Off Campus');
   const isSomeModalOpen = Object.values(modals).some((modal) => modal);
   const isParent = tab.children && tab.children.length > 0;
   const isSingleChild = isParent && tab.children?.length === 1;
@@ -40,6 +47,9 @@ const MenuItem = ({
 
   const handleSelectLocation = (location: SidebarChildrenItem) => () => {
     onSelectLocation(location);
+    if (location.type === LocationTypeEnum.offCampus) {
+      dispatch(openModalByType(location.location.modal.type));
+    }
   };
 
   return (
@@ -59,8 +69,8 @@ const MenuItem = ({
         color='gray.150'
         _hover={{ bg: 'primary.150', color: 'white' }}
         _expanded={{
-          bg: 'primary.150',
-          color: 'white',
+          bg: isOffCampusItem ? 'yellow.100' : 'primary.150',
+          color: isOffCampusItem ? 'black' : 'white',
           mb: 0,
           svg: { opacity: isParent ? 1 : 0 }
         }}
