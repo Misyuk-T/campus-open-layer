@@ -3,7 +3,10 @@ import { GiHamburgerMenu } from 'react-icons/gi';
 import { MdClose } from 'react-icons/md';
 import { useAppDispatch, useAppSelector } from '@src/store/hooks.ts';
 import { setActiveLocation } from '@src/store/reducers/locations.ts';
-import { SidebarChildrenItem, SidebarItem } from '@src/types/global';
+import {
+  MenuLinkChildrenContent,
+  MenuLinkParentContent
+} from '@src/types/sideMenu.ts';
 
 import {
   Accordion,
@@ -25,10 +28,10 @@ import {
 import { MenuItem } from '../MenuItem';
 
 interface BurgerMenuProps {
-  items: SidebarItem[];
-  activeLocation: SidebarChildrenItem | null;
-  onSelectMenuItem: (tab: SidebarItem) => void;
-  onSelectLocation: (tab: SidebarChildrenItem) => void;
+  items: MenuLinkParentContent[];
+  onSelectMenuItem: (tab: MenuLinkParentContent) => void;
+  onSelectLocation: (tab: MenuLinkChildrenContent) => void;
+  activeLocation: MenuLinkChildrenContent | null;
 }
 
 const BurgerMenu = ({
@@ -38,27 +41,31 @@ const BurgerMenu = ({
   onSelectMenuItem
 }: BurgerMenuProps) => {
   const dispatch = useAppDispatch();
-  const { modals } = useAppSelector((state) => state.modals);
+  const { openModal } = useAppSelector((state) => state.modals);
   const { selectedMenuItem } = useAppSelector((state) => state.sideMenu);
 
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useBreakpointValue({ base: true, md: false });
 
-  const isSomeModalOpen = Object.values(modals).some((modal) => modal);
+  const openModalId = openModal.id || '';
+  const openModalType = openModal.type || '';
+  const isSomeModalOpen = !!openModalId && !!openModalType;
   const shouldRenderSubHeader = activeLocation && isSomeModalOpen;
 
   const activeIndex = selectedMenuItem
     ? items.findIndex((item) => item.id === selectedMenuItem.id) + 1
     : -1;
 
-  const handleMenuItemSelect = (item: SidebarItem) => {
+  const handleMenuItemSelect = (item: MenuLinkParentContent) => {
     onSelectMenuItem(item);
-    if (item.children && item.children.length === 1) {
+    const isSingleChildren =
+      item.attributes.submenu && item.attributes.submenu.length === 1;
+    if (isSingleChildren) {
       setDrawerOpen(false);
     }
   };
 
-  const handleSelectLocation = (item: SidebarChildrenItem) => {
+  const handleSelectLocation = (item: MenuLinkChildrenContent) => {
     onSelectLocation(item);
     setDrawerOpen(false);
   };
@@ -134,7 +141,7 @@ const BurgerMenu = ({
               bg: 'gray.750'
             }}
           >
-            {activeLocation.label}
+            {activeLocation?.attributes.title}
           </Button>
         )}
       </Stack>

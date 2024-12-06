@@ -2,9 +2,7 @@ import { IconItem } from '@src/types/global.ts';
 
 import { Flex, Image, Link, Text } from '@chakra-ui/react';
 
-interface IconItemComponentProps extends IconItem {}
-
-const IconItemComponent = ({ icon, text, link }: IconItemComponentProps) => {
+const IconItemComponent = ({ icon, text, link }: IconItem) => {
   return (
     <Flex alignItems='center' gap='16px' textAlign='center'>
       <Image width='36px' maxHeight='36px' src={icon} />

@@ -1,5 +1,7 @@
 import Slider from 'react-slick';
-import { IconItem } from '@src/types/global.ts';
+import PeopleIcon from '@src/assets/icons/Icon material-people.svg';
+import { Popup4Data } from '@src/types/modals.ts';
+import { HtmlContent } from '@src/ui';
 
 import { Box, Flex, Image, Stack, Text, VStack } from '@chakra-ui/react';
 
@@ -15,21 +17,22 @@ const sliderSettings = {
 };
 
 interface ImageSliderProps {
-  title: string;
-  description: string;
-  iconItems: IconItem[];
-  infoItems: IconItem[];
-  sliderItems: string[];
+  data: Popup4Data;
 }
 
-const ImageSlider = ({
-  title,
-  description,
-  iconItems,
-  infoItems,
-  sliderItems
-}: ImageSliderProps) => {
-  const isInfoItemsExist = infoItems.length > 0;
+const ImageSlider = ({ data }: ImageSliderProps) => {
+  const {
+    field_title: title,
+    field_location_description: description,
+    field_image_carousel,
+    field_capacity
+  } = data.attributes;
+  const iconItems = data.relationships?.field_location_links?.map((link) => ({
+    icon: link?.field_link_icon?.url || '',
+    text: link?.field_location_link?.title || '',
+    link: link?.field_location_link?.uri || ''
+  }));
+  const isIconItemsExist = iconItems?.length > 0;
 
   return (
     <Stack
@@ -48,10 +51,10 @@ const ImageSlider = ({
         }}
       >
         <Slider {...sliderSettings}>
-          {sliderItems.map((image, index) => (
+          {field_image_carousel.map((image, index) => (
             <Box key={index} h='auto' w='100%' px='10px'>
               <Image
-                src={image}
+                src={image.url}
                 alt={`Slide ${index + 1}`}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -73,24 +76,22 @@ const ImageSlider = ({
             </Text>
           )}
           {description && (
-            <Text textStyle='paragraphMedium' lineHeight='140%'>
-              {description}
+            <Text textStyle='paragraphMedium' lineHeight='140%' as='div'>
+              <HtmlContent content={description} />
             </Text>
           )}
 
-          <VStack align='flex-start' mt='10px'>
-            {infoItems.map((item, index) => (
+          {field_capacity && (
+            <VStack align='flex-start' mt='10px'>
               <IconItemComponent
-                key={index}
-                icon={item.icon}
-                text={item.text}
-                link={item.link}
+                icon={PeopleIcon}
+                text={`Capacity: ${field_capacity}`}
               />
-            ))}
-          </VStack>
+            </VStack>
+          )}
         </Stack>
 
-        {isInfoItemsExist && (
+        {isIconItemsExist && (
           <Flex
             align='flex-start'
             justifyContent='flex-start'
@@ -104,7 +105,7 @@ const ImageSlider = ({
               <IconItemComponent
                 key={index}
                 icon={item.icon}
-                text={item.text}
+                text='item.text'
                 link={item.link}
               />
             ))}

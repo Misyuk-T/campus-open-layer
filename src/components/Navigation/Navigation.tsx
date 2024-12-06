@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
-import { items } from '@src/components/Navigation/mocks.ts';
-import { getSideMenu } from '@src/store/actions/sideMenu';
 import { useAppDispatch, useAppSelector } from '@src/store/hooks';
 import {
   setActiveLocation,
   setActiveLocations
 } from '@src/store/reducers/locations.ts';
 import { setSelectedMenuItem } from '@src/store/reducers/sideMenu.ts';
-import { SidebarChildrenItem, SidebarItem } from '@src/types/global';
+import {
+  MenuLinkChildrenContent,
+  MenuLinkParentContent
+} from '@src/types/sideMenu.ts';
 
 import { Box } from '@chakra-ui/react';
 
@@ -15,10 +15,15 @@ import { BurgerMenu, Sidebar } from './components';
 
 const Navigation = () => {
   const dispatch = useAppDispatch();
-  const { selectedMenuItem } = useAppSelector((state) => state.sideMenu);
+  const { selectedMenuItem, menu, isLoading } = useAppSelector(
+    (state) => state.sideMenu
+  );
   const { activeLocation } = useAppSelector((state) => state.locations);
 
-  const handleSelectLocation = (item: SidebarChildrenItem | null) => {
+  const isMenuDataExist = menu && menu.length > 0;
+  const shouldRenderContent = isMenuDataExist && !isLoading;
+
+  const handleSelectLocation = (item: MenuLinkChildrenContent | null) => {
     dispatch(setActiveLocation(item));
   };
 
@@ -26,7 +31,7 @@ const Navigation = () => {
     dispatch(setActiveLocation(null));
   };
 
-  const handleToggleLocation = (item: SidebarChildrenItem | null) => {
+  const handleToggleLocation = (item: MenuLinkChildrenContent | null) => {
     if (activeLocation?.id === item?.id) {
       handleResetLocation();
     } else {
@@ -34,9 +39,9 @@ const Navigation = () => {
     }
   };
 
-  const handleSelectMenuItem = (item: SidebarItem) => {
+  const handleSelectMenuItem = (item: MenuLinkParentContent) => {
     dispatch(setSelectedMenuItem(item));
-    dispatch(setActiveLocations(item.children || []));
+    dispatch(setActiveLocations(item.attributes.submenu || []));
   };
 
   const handleResetMenuItem = () => {
@@ -45,7 +50,7 @@ const Navigation = () => {
     dispatch(setActiveLocation(null));
   };
 
-  const handleToggleMenuItem = (item: SidebarItem) => {
+  const handleToggleMenuItem = (item: MenuLinkParentContent) => {
     if (selectedMenuItem?.id === item.id) {
       handleResetMenuItem();
     } else {
@@ -54,26 +59,33 @@ const Navigation = () => {
     handleResetLocation();
   };
 
-  useEffect(() => {
-    dispatch(getSideMenu());
-  }, [dispatch]);
-
   return (
     <>
       <Box display={{ base: 'block', md: 'none' }} w='100%' h='100%'>
-        <BurgerMenu
-          items={items}
-          onSelectMenuItem={handleToggleMenuItem}
-          onSelectLocation={handleToggleLocation}
-          activeLocation={activeLocation}
-        />
+        {shouldRenderContent && (
+          <BurgerMenu
+            items={menu}
+            onSelectMenuItem={handleToggleMenuItem}
+            onSelectLocation={handleToggleLocation}
+            activeLocation={activeLocation}
+          />
+        )}
       </Box>
-      <Box display={{ base: 'none', md: 'flex' }} flex='1 0 auto'>
-        <Sidebar
-          items={items}
-          onSelectMenuItem={handleToggleMenuItem}
-          onSelectLocation={handleToggleLocation}
-        />
+      <Box
+        display={{ base: 'none', md: 'flex' }}
+        flex='1 0 auto'
+        width='250px'
+        color='white'
+        bg='gray.700'
+        mr='auto'
+      >
+        {shouldRenderContent && (
+          <Sidebar
+            items={menu}
+            onSelectMenuItem={handleToggleMenuItem}
+            onSelectLocation={handleToggleLocation}
+          />
+        )}
       </Box>
     </>
   );

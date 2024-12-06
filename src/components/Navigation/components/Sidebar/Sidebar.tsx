@@ -1,5 +1,8 @@
 import { useAppSelector } from '@src/store/hooks.ts';
-import { SidebarChildrenItem, SidebarItem } from '@src/types/global.ts';
+import {
+  MenuLinkChildrenContent,
+  MenuLinkParentContent
+} from '@src/types/sideMenu.ts';
 
 import {
   Accordion,
@@ -13,9 +16,9 @@ import {
 import { MenuItem } from '../MenuItem';
 
 interface SidebarProps {
-  items: SidebarItem[];
-  onSelectMenuItem: (tab: SidebarItem) => void;
-  onSelectLocation: (tab: SidebarChildrenItem) => void;
+  items: MenuLinkParentContent[];
+  onSelectMenuItem: (tab: MenuLinkParentContent) => void;
+  onSelectLocation: (tab: MenuLinkChildrenContent) => void;
 }
 
 const Sidebar = ({
@@ -30,14 +33,7 @@ const Sidebar = ({
     : -1;
 
   return (
-    <Box
-      width='250px'
-      color='white'
-      bg='gray.700'
-      mr='auto'
-      flex='1 0 auto'
-      zIndex={11}
-    >
+    <Box color='white' mr='auto' flex='1 0 auto' zIndex={11}>
       <Box py='24px' px='8px'>
         <Text
           fontFamily='primary'

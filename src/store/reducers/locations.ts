@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SidebarChildrenItem } from '@src/types/global';
+import { MenuLinkChildrenContent } from '@src/types/sideMenu.ts';
 
 export interface LocationsState {
-  activeLocations: SidebarChildrenItem[];
-  activeLocation: SidebarChildrenItem | null;
+  activeLocations: MenuLinkChildrenContent[];
+  activeLocation: MenuLinkChildrenContent | null;
 }
 
 const initialState: LocationsState = {
@@ -15,12 +15,15 @@ const locationsSlice = createSlice({
   name: 'locations',
   initialState,
   reducers: {
-    setActiveLocations(state, action: PayloadAction<SidebarChildrenItem[]>) {
+    setActiveLocations(
+      state,
+      action: PayloadAction<MenuLinkChildrenContent[]>
+    ) {
       state.activeLocations = action.payload;
     },
     setActiveLocation(
       state,
-      action: PayloadAction<SidebarChildrenItem | null>
+      action: PayloadAction<MenuLinkChildrenContent | null>
     ) {
       state.activeLocation = action.payload;
     }

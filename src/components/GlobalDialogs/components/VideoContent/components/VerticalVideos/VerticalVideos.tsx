@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ReactPlayer from 'react-player';
 import { CustomPlayButton } from '@src/components/VideoGallery/components';
+import { CampusVideo } from '@src/types/modals.ts';
 import { ScrollBar } from '@src/ui';
 
 import {
@@ -11,38 +12,33 @@ import {
   useBreakpointValue
 } from '@chakra-ui/react';
 
-interface VideoData {
-  url: string;
-  title: string;
-}
-
 interface VerticalVideosProps {
-  videos: VideoData[];
+  videos: CampusVideo[];
   maxHeight?: number;
 }
 
 const VerticalVideos = ({ videos, maxHeight }: VerticalVideosProps) => {
   const isMobile = useBreakpointValue({ base: true, lg: false });
-  const [selectedVideo, setSelectedVideo] = useState<VideoData>(videos[0]);
+  const [selectedVideo, setSelectedVideo] = useState<CampusVideo>(videos[0]);
   const [isPlayingId, setIsPlayingId] = useState<string>('');
   const [isReadyToPlay, setIsReadyToPlay] = useState<{
     [url: string]: boolean;
   }>({});
 
-  const isYoutubePlayer = videos[0].url.includes('youtube');
+  const isYoutubePlayer = videos[0]?.video_url.includes('youtube');
   const availableHeight = maxHeight ? `${maxHeight}px` : '100%';
-  const isMainVideoPlaying = isPlayingId === selectedVideo.url;
+  const isMainVideoPlaying = isPlayingId === selectedVideo.video_url;
   const isAllVideosReady =
     Object.values(isReadyToPlay).length === videos.length;
 
   const handlePlayClick = () => {
-    setIsPlayingId(selectedVideo.url);
+    setIsPlayingId(selectedVideo.video_url);
   };
 
-  const handleVideoClick = (video: VideoData) => () => {
+  const handleVideoClick = (video: CampusVideo) => () => {
     setSelectedVideo(video);
     if (isMobile) {
-      setIsPlayingId(video.url);
+      setIsPlayingId(video.video_url);
     }
   };
 
@@ -75,15 +71,19 @@ const VerticalVideos = ({ videos, maxHeight }: VerticalVideosProps) => {
         flex={1}
       >
         <AspectRatio ratio={9 / 16} w='100%' position='relative'>
-          <Box w='100%' h='100%'>
+          <Box
+            w='100%'
+            h='100%'
+            opacity={isReadyToPlay[selectedVideo.video_url] ? 1 : 0}
+          >
             <ReactPlayer
               key={
-                isReadyToPlay[selectedVideo.url]
-                  ? selectedVideo.url
-                  : `${selectedVideo.url}-loading`
+                isReadyToPlay[selectedVideo.video_url]
+                  ? selectedVideo.video_url
+                  : `${selectedVideo.video_url}-loading`
               }
-              url={selectedVideo.url}
-              onReady={handleReady(selectedVideo.url)}
+              url={selectedVideo.video_url}
+              onReady={handleReady(selectedVideo.video_url)}
               width='100%'
               height='100%'
               playing={isMainVideoPlaying && !isMobile}
@@ -122,12 +122,13 @@ const VerticalVideos = ({ videos, maxHeight }: VerticalVideosProps) => {
             pr={{ base: '25px', sm: '30px', xl: '40px', '2xl': '60px' }}
           >
             {videos.map((video) => {
-              const isYoutube = video.url.includes('youtube');
-              const isPlayingVideo = isPlayingId === video.url && isMobile;
+              const isYoutube = video.video_url.includes('youtube');
+              const isPlayingVideo =
+                isPlayingId === video.video_url && isMobile;
 
               return (
                 <Box
-                  key={video.url}
+                  key={video.video_url}
                   w={{
                     base: '100%',
                     sm: '50%',
@@ -150,9 +151,13 @@ const VerticalVideos = ({ videos, maxHeight }: VerticalVideosProps) => {
                   >
                     <Box w='100%' h='100%' bg='black' position='relative'>
                       <ReactPlayer
-                        key={isAllVideosReady ? video.url : selectedVideo.url}
-                        url={video.url}
-                        onReady={handleReady(video.url)}
+                        key={
+                          isAllVideosReady
+                            ? video.video_url
+                            : selectedVideo.video_url
+                        }
+                        url={video.video_url}
+                        onReady={handleReady(video.video_url)}
                         width='100%'
                         height='100%'
                         playing={isPlayingVideo}
@@ -181,7 +186,7 @@ const VerticalVideos = ({ videos, maxHeight }: VerticalVideosProps) => {
                     lineHeight='140%'
                     color='white'
                   >
-                    {video.title}
+                    {video.name}
                   </Text>
                 </Box>
               );

@@ -1,37 +1,41 @@
 import { RefObject } from 'react';
 import { Scrollbars } from 'react-custom-scrollbars-2';
+import { OptionType, SearchResult } from '@src/types/global.ts';
+import { AnchorParameters } from '@src/types/modals.ts';
 import {
-  SearchResult,
-  SidebarChildrenItem,
-  SidebarItem
-} from '@src/types/global.ts';
+  MenuLinkChildrenContent,
+  MenuLinkParentContent
+} from '@src/types/sideMenu.ts';
 import DOMPurify from 'dompurify';
 
 /**
  * Searches items recursively to match the query and collects the matching items with their parent.
  *
- * @param {Array<SidebarItem | SidebarChildrenItem>} items - The items to search through.
+ * @param {Array<MenuLinkParentContent | MenuLinkChildrenContent>} items - The items to search through.
  * @param {string} query - The search query.
- * @param {SidebarItem | null} [parent=null] - The parent item, if any, for nested items.
+ * @param {MenuLinkParentContent | null} [parent=null] - The parent item, if any, for nested items.
  * @returns {SearchResult[]} - An array of search results containing items that match the query and their respective parent.
  */
 export const searchItems = (
-  items: (SidebarItem | SidebarChildrenItem)[],
+  items: (MenuLinkParentContent | MenuLinkChildrenContent)[],
   query: string,
-  parent: SidebarItem | null = null
+  parent: MenuLinkParentContent | null = null
 ): SearchResult[] => {
   const lowerQuery = query.toLowerCase();
   let results: SearchResult[] = [];
 
   items.forEach((item) => {
-    if (item.label.toLowerCase().includes(lowerQuery)) {
-      results.push({ item: item, parent: parent });
+    const title = item.attributes.title.toLowerCase();
+
+    if (title.includes(lowerQuery)) {
+      results.push({ item, parent });
     }
-    if ('children' in item && item.children) {
+
+    if (item.attributes.submenu && item.attributes.submenu.length > 0) {
       const childResults = searchItems(
-        item.children,
+        item.attributes.submenu,
         query,
-        item as SidebarItem
+        item as MenuLinkParentContent
       );
       results = [...results, ...childResults];
     }
@@ -100,4 +104,22 @@ export const smoothScrollTo = (
 
 export const createMarkup = (htmlContent: string) => {
   return { __html: DOMPurify.sanitize(htmlContent) };
+};
+
+/**
+ * Maps an array of anchor parameters to an array of options suitable for dropdowns or selection components.
+ *
+ * @param {Array<AnchorParameters>} anchorList - The list of anchor objects containing `text` and `anchor_id`.
+ * @returns {Array<OptionType>} - The list of options, each with a `label` (derived from `text`) and `value` (derived from `anchor_id`).
+ */
+export const mapAnchorListToOptions = (
+  anchorList: AnchorParameters[]
+): OptionType[] => {
+  if (!Array.isArray(anchorList)) {
+    return [];
+  }
+  return anchorList.map((anchor) => ({
+    label: anchor.text,
+    value: `scroll-item-${anchor.anchor_id}`
+  }));
 };

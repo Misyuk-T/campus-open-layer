@@ -1,18 +1,19 @@
 import { ChangeEvent, useRef, useState } from 'react';
 import { IoIosSearch } from 'react-icons/io';
+import { fetchDataAndOpenModal } from '@src/store/actions/modals.ts';
 import { useAppDispatch } from '@src/store/hooks.ts';
 import {
   setActiveLocation,
   setActiveLocations
 } from '@src/store/reducers/locations.ts';
-import { openModalByType } from '@src/store/reducers/modals.ts';
 import { setSelectedMenuItem } from '@src/store/reducers/sideMenu.ts';
+import { SearchResult } from '@src/types/global.ts';
 import {
-  LocationTypeEnum,
-  SearchResult,
-  SidebarChildrenItem,
-  SidebarItem
-} from '@src/types/global.ts';
+  LocationEntityTypeEnum,
+  MenuLinkChildrenContent,
+  MenuLinkParentContent,
+  PopupEntityTypeToPopupType
+} from '@src/types/sideMenu.ts';
 import { ScrollBar } from '@src/ui/ScrollBar';
 import { searchItems } from '@src/utils/helpers.ts';
 
@@ -29,7 +30,7 @@ import {
 } from '@chakra-ui/react';
 
 interface SearchBarProps {
-  items: SidebarItem[];
+  items: MenuLinkParentContent[];
 }
 
 const SearchBar = ({ items }: SearchBarProps) => {
@@ -63,29 +64,38 @@ const SearchBar = ({ items }: SearchBarProps) => {
     }
   };
 
-  const handleSelectLocation = (item: SidebarChildrenItem | null) => {
+  const handleSelectLocation = (item: MenuLinkChildrenContent | null) => {
     dispatch(setActiveLocation(item));
-    if (item?.type === LocationTypeEnum.offCampus) {
-      dispatch(openModalByType(item?.location.modal.type));
+    const entityData = item?.attributes.entity_data;
+    if (entityData && entityData.type === LocationEntityTypeEnum.offCampus) {
+      const popupData = entityData.attributes.popup_data;
+      if (popupData) {
+        const popupType = PopupEntityTypeToPopupType[popupData.type];
+        dispatch(fetchDataAndOpenModal(popupType, popupData.id));
+      }
     }
   };
 
-  const handleSelectMenuItem = (item: SidebarItem) => {
+  const handleSelectMenuItem = (item: MenuLinkParentContent) => {
     dispatch(setSelectedMenuItem(item));
-    dispatch(setActiveLocations(item.children || []));
+    dispatch(setActiveLocations(item.attributes.submenu || []));
   };
 
   const handleClickItem =
-    (item: SidebarChildrenItem | SidebarItem, parent: SidebarItem | null) =>
+    (
+      item: MenuLinkChildrenContent | MenuLinkParentContent,
+      parent: MenuLinkParentContent | null
+    ) =>
     () => {
-      if ('children' in item && item.children) {
-        const isSingleChild = item.children.length === 1;
-        handleSelectMenuItem(item as SidebarItem);
+      const children = item.attributes.submenu;
+      if (children) {
+        const isSingleChild = children.length === 1;
+        handleSelectMenuItem(item as MenuLinkParentContent);
         if (isSingleChild) {
-          handleSelectLocation(item.children[0]);
+          handleSelectLocation(children[0]);
         }
       } else {
-        handleSelectLocation(item as SidebarChildrenItem);
+        handleSelectLocation(item as MenuLinkChildrenContent);
         if (parent) {
           handleSelectMenuItem(parent);
         }
@@ -163,7 +173,7 @@ const SearchBar = ({ items }: SearchBarProps) => {
                       w='100%'
                       whiteSpace='wrap'
                     >
-                      {item.label}
+                      {item.attributes.title || ''}
                     </Text>
                   </Button>
                 ))}

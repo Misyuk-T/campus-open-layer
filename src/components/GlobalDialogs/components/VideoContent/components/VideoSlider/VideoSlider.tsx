@@ -1,10 +1,10 @@
 import { VideoGallery } from '@src/components';
-import { VideoData } from '@src/types/global.ts';
+import { CampusVideo } from '@src/types/modals.ts';
 
 import { Stack } from '@chakra-ui/react';
 
 interface VideoSliderProps {
-  videos: VideoData[];
+  videos: CampusVideo[];
 }
 
 const VideoSlider = ({ videos }: VideoSliderProps) => {

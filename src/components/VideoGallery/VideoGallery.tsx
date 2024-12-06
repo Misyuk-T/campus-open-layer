@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import ReactPlayer from 'react-player';
 import Slider, { Settings } from 'react-slick';
-import { VideoData } from '@src/types/global.ts';
+import { CampusVideo } from '@src/types/modals.ts';
 
 import { AspectRatio, Box, Flex, StyleProps, VStack } from '@chakra-ui/react';
 
 import { CustomPlayButton } from './components';
 
 interface VideoGalleryProps {
-  videoUrls: VideoData[];
+  videoUrls: CampusVideo[];
   sliderOptions?: Settings;
   activeSlideStyles?: StyleProps;
 }
@@ -25,12 +25,12 @@ const VideoGallery = ({
   sliderOptions,
   activeSlideStyles = {}
 }: VideoGalleryProps) => {
-  const [selectedVideo, setSelectedVideo] = useState<VideoData>(videoUrls[0]);
+  const [selectedVideo, setSelectedVideo] = useState<CampusVideo>(videoUrls[0]);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const isYoutubePlayer = selectedVideo.url.includes('youtube');
+  const isYoutubePlayer = selectedVideo.video_url.includes('youtube');
 
-  const handleVideoClick = (video: VideoData) => () => {
+  const handleVideoClick = (video: CampusVideo) => () => {
     setSelectedVideo(video);
     setIsPlaying(false);
   };
@@ -62,7 +62,7 @@ const VideoGallery = ({
       >
         <Box w='100%' h='100%'>
           <ReactPlayer
-            url={selectedVideo.url}
+            url={selectedVideo.video_url}
             width='100%'
             height='100%'
             playing={isPlaying}
@@ -89,7 +89,7 @@ const VideoGallery = ({
 
       <Slider {...sliderSettings} {...sliderOptions}>
         {videoUrls.map((video, index) => {
-          const isYoutube = video.url.includes('youtube');
+          const isYoutube = video.video_url.includes('youtube');
           return (
             <VStack
               key={index}
@@ -106,7 +106,7 @@ const VideoGallery = ({
               >
                 <Box w='100%' h='100%'>
                   <ReactPlayer
-                    url={video.url}
+                    url={video.video_url}
                     width='100%'
                     height='100%'
                     controls={false}

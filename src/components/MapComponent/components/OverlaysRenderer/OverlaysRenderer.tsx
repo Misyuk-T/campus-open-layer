@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
+import { labelPositionType } from '@src/types/global.ts';
 import {
-  labelPositionType,
-  LocationTypeEnum,
-  SidebarChildrenItem
-} from '@src/types/global.ts';
+  LocationEntityTypeEnum,
+  MenuLinkChildrenContent
+} from '@src/types/sideMenu.ts';
 import { OffCampus } from '@src/ui';
 import { MAP_IMAGE_WIDTH } from '@src/utils/constants.ts';
 import { boundingExtent } from 'ol/extent';
@@ -15,8 +15,8 @@ import { BuildingOverlay } from '../BuildingOverlay';
 
 interface OverlaysRendererProps {
   map: Map;
-  activeLocations: SidebarChildrenItem[];
-  activeLocation: SidebarChildrenItem | null;
+  activeLocations: MenuLinkChildrenContent[];
+  activeLocation: MenuLinkChildrenContent | null;
 }
 
 const CHAR_WIDTH = 4;
@@ -32,13 +32,17 @@ const OverlaysRenderer = ({
 
   const onCampusLocations = useMemo(
     () =>
-      activeLocations.filter((item) => item.type === LocationTypeEnum.onCampus),
+      activeLocations.filter(
+        (item) =>
+          item.attributes.entity_data.type === LocationEntityTypeEnum.onCampus
+      ),
     [activeLocations]
   );
   const offCampusLocations = useMemo(
     () =>
       activeLocations.filter(
-        (item) => item.type === LocationTypeEnum.offCampus
+        (item) =>
+          item.attributes.entity_data.type === LocationEntityTypeEnum.offCampus
       ),
     [activeLocations]
   );
@@ -49,7 +53,10 @@ const OverlaysRenderer = ({
     const newOverlays = onCampusLocations.map((item) => {
       const overlayElement = document.createElement('div');
       const overlay = new Overlay({
-        position: [item.location.x, item.location.y],
+        position: [
+          item.attributes.location.coordinateX,
+          item.attributes.location.coordinateY
+        ],
         positioning: 'center-center',
         element: overlayElement,
         id: item.id
@@ -61,8 +68,8 @@ const OverlaysRenderer = ({
 
     if (onCampusLocations.length > 0) {
       const coordinates = onCampusLocations.map((item) => [
-        item.location.x,
-        item.location.y
+        item.attributes.location.coordinateX,
+        item.attributes.location.coordinateY
       ]);
       let extent = boundingExtent(coordinates);
       const view = map.getView();
@@ -83,17 +90,19 @@ const OverlaysRenderer = ({
 
   useEffect(() => {
     const isLocationValid =
-      activeLocation && activeLocation.type === LocationTypeEnum.onCampus;
+      activeLocation &&
+      activeLocation.attributes.entity_data.type ===
+        LocationEntityTypeEnum.onCampus;
     if (map && isLocationValid) {
       const view = map.getView();
       const resolution = view.getResolution() || 1;
-      const labelLength = activeLocation.label.length;
+      const labelLength = activeLocation?.attributes.location.label.length;
       const contentWidth =
         labelLength * (CHAR_WIDTH * resolution) + LABEL_PADDING;
       view.animate({
         center: [
-          activeLocation.location.x + contentWidth,
-          activeLocation.location.y
+          activeLocation?.attributes.location.coordinateX + contentWidth,
+          activeLocation?.attributes.location.coordinateY
         ],
         duration: 500,
         easing: (t) => t * (2 - t)
@@ -111,7 +120,7 @@ const OverlaysRenderer = ({
           if (!childrenItem) return null;
 
           const overlayPosition = overlay.getPosition() as [number, number];
-          const labelLength = childrenItem.label.length;
+          const labelLength = childrenItem.attributes.location.label.length;
           const approximateLabelWidth =
             labelLength * CHAR_WIDTH + MAP_OFFSET + LABEL_PADDING;
           const isEnoughSpaceWithMaxScale =

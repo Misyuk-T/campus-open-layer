@@ -1,39 +1,70 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Modals } from '@src/types/global.ts';
-
-type ModalsType = {
-  [key in Modals]: boolean;
-};
+import { ModalDataMap, PopupDataTypeMap, PopupType } from '@src/types/modals';
 
 export type ModalStore = {
-  modals: ModalsType;
-};
-
-const initialModalState: ModalsType = {
-  imageAndText: false,
-  videoGallery: false,
-  imageSlider: false,
-  imageAndVideo: false,
-  verticalVideos: false
+  data: ModalDataMap;
+  isLoading: boolean;
+  openModal: {
+    type: PopupType | null;
+    id: string | null;
+  };
+  error: string;
 };
 
 const initialState: ModalStore = {
-  modals: initialModalState
+  data: {
+    [PopupType.POPUP_WITH_IMAGE_AND_VIDEOS]: {},
+    [PopupType.SINGLE_TEXT_POPUP]: {},
+    [PopupType.VIDEO_POPUP]: {},
+    [PopupType.IMAGE_SLIDER_POPUP]: {}
+  } as ModalDataMap,
+  isLoading: false,
+  openModal: {
+    type: null,
+    id: null
+  },
+  error: ''
 };
 
 const modalSlice = createSlice({
   name: 'Modals',
   initialState,
   reducers: {
-    openModalByType: (state, { payload }: PayloadAction<Modals>) => {
-      state.modals[payload] = true;
+    openModalByType: (
+      state,
+      { payload }: PayloadAction<{ modalType: PopupType; id: string }>
+    ) => {
+      state.openModal = { type: payload.modalType, id: payload.id };
     },
     closeModals: (state) => {
-      state.modals = initialModalState;
+      state.openModal = { type: null, id: null };
+    },
+    setModalData: <K extends PopupType>(
+      state: ModalStore,
+      action: PayloadAction<{
+        modalType: PopupType;
+        id: string;
+        data: PopupDataTypeMap[K];
+      }>
+    ) => {
+      const { modalType, id, data } = action.payload;
+      state.data[modalType][id] = data;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
     }
   }
 });
 
-export const { openModalByType, closeModals } = modalSlice.actions;
+export const {
+  openModalByType,
+  closeModals,
+  setModalData,
+  setLoading,
+  setError
+} = modalSlice.actions;
 
 export default modalSlice.reducer;

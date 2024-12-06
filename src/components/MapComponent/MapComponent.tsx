@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaMinus } from 'react-icons/fa';
 import { FaPlus } from 'react-icons/fa';
-import { items } from '@src/components/Navigation/mocks.ts';
 import { useAppSelector } from '@src/store/hooks';
 import { SearchBar } from '@src/ui';
 import {
@@ -25,6 +24,7 @@ import 'ol/ol.css';
 import MapImage from '/map.jpg';
 
 const MapComponent = () => {
+  const { menu } = useAppSelector((state) => state.sideMenu);
   const { activeLocations, activeLocation } = useAppSelector(
     (state) => state.locations
   );
@@ -89,13 +89,14 @@ const MapComponent = () => {
         md: '100vh'
       }}
       bg='gray.100'
+      overflow='hidden'
       // iOS fix
       minHeight='-webkit-fill-available'
       maxHeight='-webkit-fill-available'
       position='relative'
     >
       <Box ref={mapElement} width='100%' height='100%' />
-      {map && (
+      {map && activeLocations.length && (
         <OverlaysRenderer
           map={map}
           activeLocations={activeLocations}
@@ -124,9 +125,11 @@ const MapComponent = () => {
             icon={<FaPlus />}
           />
 
-          <Box width={{ base: '100%', sm: '230px' }}>
-            <SearchBar items={items} />
-          </Box>
+          {menu && (
+            <Box width={{ base: '100%', sm: '230px' }}>
+              <SearchBar items={menu} />
+            </Box>
+          )}
         </Flex>
       </Box>
     </Box>

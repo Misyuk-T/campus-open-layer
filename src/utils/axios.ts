@@ -1,12 +1,17 @@
 import Axios, { AxiosResponse } from 'axios';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+const USERNAME = import.meta.env.VITE_AUTH_NAME;
+const PASSWORD = import.meta.env.VITE_AUTH_PASS;
+
+const basicAuth = `Basic ${btoa(`${USERNAME}:${PASSWORD}`)}`;
 
 export const instance = Axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    Accept: 'application/json'
+    Accept: 'application/json',
+    Authorization: basicAuth
   },
   responseType: 'json',
   timeout: 60000

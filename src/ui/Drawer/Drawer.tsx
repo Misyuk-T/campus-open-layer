@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
 import { OptionType } from '@src/types/global.ts';
-import { ScrollBar, SelectField } from '@src/ui';
+import { HtmlContent, ScrollBar, SelectField } from '@src/ui';
 import { debounce } from '@src/utils/helpers.ts';
 
 import {
@@ -49,6 +49,8 @@ const Drawer = ({
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [maxHeight, setMaxHeight] = useState<number>(0);
   const ref = useRef(null);
+
+  const isOptionsExist = options && options?.length > 0;
 
   const handleClose = () => {
     onClose();
@@ -130,12 +132,19 @@ const Drawer = ({
               <Text textStyle='h2' as='h2' color='white'>
                 {title}
               </Text>
-              <Text textStyle='paragraphMedium' color='white' lineHeight='140%'>
-                {description}
-              </Text>
+              {description && (
+                <Text
+                  textStyle='paragraphMedium'
+                  lineHeight='140%'
+                  color='white'
+                  as='div'
+                >
+                  <HtmlContent content={description} />
+                </Text>
+              )}
             </Stack>
 
-            {options && (
+            {isOptionsExist && (
               <Box
                 flexShrink={0}
                 width={{ base: '100%', sm: '160px', md: '200px', lg: '240px' }}

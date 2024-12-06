@@ -1,10 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SidebarItem } from '@src/types/global.ts';
-import { SideMenuResponseData } from '@src/types/sideMenu.ts';
+import { MenuLinkParentContent } from '@src/types/sideMenu.ts';
 
 export type sideMenuStore = {
-  menu: SideMenuResponseData | null;
-  selectedMenuItem: SidebarItem | null;
+  menu: MenuLinkParentContent[] | null;
+  selectedMenuItem: MenuLinkParentContent | null;
   isLoading: boolean;
 };
 
@@ -21,10 +20,13 @@ const sideMenuSlice = createSlice({
     toggleLoader(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
-    setMenuData(state, action: PayloadAction<SideMenuResponseData>) {
+    setMenuData(state, action: PayloadAction<MenuLinkParentContent[]>) {
       state.menu = action.payload;
     },
-    setSelectedMenuItem(state, action: PayloadAction<SidebarItem | null>) {
+    setSelectedMenuItem(
+      state,
+      action: PayloadAction<MenuLinkParentContent | null>
+    ) {
       state.selectedMenuItem = action.payload;
     }
   }

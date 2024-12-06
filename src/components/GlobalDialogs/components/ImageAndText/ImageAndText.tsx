@@ -1,13 +1,16 @@
 import { SimpleParagraph } from '@src/components/GlobalDialogs/components';
-import { ParagraphData } from '@src/types/global.ts';
+import { Popup2Data } from '@src/types/modals.ts';
 
 import { Stack } from '@chakra-ui/react';
 
 interface ImageAndTextProps {
-  paragraphs: ParagraphData[];
+  data: Popup2Data;
 }
 
-const ImageAndText = ({ paragraphs }: ImageAndTextProps) => {
+const ImageAndText = ({ data }: ImageAndTextProps) => {
+  const { relationships } = data;
+  const paragraphs = relationships.field_paragraph;
+
   return (
     <Stack
       w='100%'

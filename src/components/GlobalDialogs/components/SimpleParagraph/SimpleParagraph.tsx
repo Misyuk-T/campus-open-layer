@@ -1,4 +1,5 @@
-import { ParagraphData } from '@src/types/global.ts';
+import { ParagraphData } from '@src/types/modals.ts';
+import { HtmlContent } from '@src/ui';
 
 import { Box, Image, Stack, Text } from '@chakra-ui/react';
 
@@ -7,44 +8,51 @@ interface SimpleParagraphProps {
 }
 
 const SimpleParagraph = ({ data }: SimpleParagraphProps) => {
-  const { image, title, text, anchorClass } = data;
+  const {
+    field_location_image,
+    field_title,
+    field_location_description,
+    anchor_parameters
+  } = data;
+
+  const anchorClass = anchor_parameters ? anchor_parameters.anchor_id : '';
 
   return (
     <Stack
-      className={anchorClass}
+      className={`scroll-item-${anchorClass}`}
       justifyContent='center'
       alignItems='center'
       w='100%'
       gap={{ base: '20px', md: '25px', lg: '30px' }}
     >
-      {(title || text) && (
+      {(field_title || field_location_description) && (
         <Stack
           gap={{ base: '5px', md: '12px' }}
           w='100%'
           color='white'
           textAlign='left'
         >
-          {title && (
+          {field_title && (
             <Text textStyle='h5' as='h5' textTransform='uppercase'>
-              {title}
+              {field_title}
             </Text>
           )}
 
-          {text && (
-            <Text textStyle='paragraphMedium' lineHeight='140%'>
-              {text}
+          {field_location_description && (
+            <Text textStyle='paragraphMedium' lineHeight='140%' as='div'>
+              <HtmlContent content={field_location_description} />
             </Text>
           )}
         </Stack>
       )}
 
-      {image && (
+      {field_location_image && (
         <Box width='100%' overflow='hidden'>
           <Image
-            src={image}
+            src={field_location_image.url}
             mx='auto'
             w='100%'
-            alt={title || 'Paragraph Image'}
+            alt={field_title || 'Paragraph Image'}
             objectFit='cover'
           />
         </Box>

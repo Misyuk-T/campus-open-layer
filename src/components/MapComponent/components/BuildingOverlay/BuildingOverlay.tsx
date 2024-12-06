@@ -1,9 +1,13 @@
 import { FiMove } from 'react-icons/fi';
 import { LiaPlusSolid } from 'react-icons/lia';
+import { fetchDataAndOpenModal } from '@src/store/actions/modals.ts';
 import { useAppDispatch, useAppSelector } from '@src/store/hooks';
 import { setActiveLocation } from '@src/store/reducers/locations';
-import { openModalByType } from '@src/store/reducers/modals.ts';
-import { labelPositionType, SidebarChildrenItem } from '@src/types/global.ts';
+import { labelPositionType } from '@src/types/global.ts';
+import {
+  MenuLinkChildrenContent,
+  PopupEntityTypeToPopupType
+} from '@src/types/sideMenu.ts';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { Button, Flex, IconButton, Text } from '@chakra-ui/react';
@@ -15,7 +19,7 @@ const MotionButton = motion(Button);
 const MotionText = motion(Text);
 
 interface BuildingOverlayProps {
-  childrenItem: SidebarChildrenItem;
+  childrenItem: MenuLinkChildrenContent;
   labelPosition?: labelPositionType;
 }
 
@@ -28,7 +32,6 @@ const BuildingOverlay = ({
 
   const isRightPlacement = labelPosition === 'right';
   const isOpen = activeLocation?.id === childrenItem.id;
-  const modalType = childrenItem.location.modal;
 
   const toggleOverlay = () => {
     dispatch(
@@ -37,9 +40,11 @@ const BuildingOverlay = ({
   };
 
   const handleClick = () => {
-    if (modalType) {
-      dispatch(setActiveLocation(childrenItem));
-      dispatch(openModalByType(modalType.type));
+    dispatch(setActiveLocation(childrenItem));
+    const popupData = childrenItem.attributes.entity_data.attributes.popup_data;
+    if (popupData) {
+      const popupType = PopupEntityTypeToPopupType[popupData.type];
+      dispatch(fetchDataAndOpenModal(popupType, popupData.id));
     }
   };
 
@@ -125,7 +130,7 @@ const BuildingOverlay = ({
               duration: isOpen ? 0.2 : 0
             }}
           >
-            {childrenItem.label}
+            {childrenItem.attributes.title}
           </MotionText>
         </MotionButton>
       </AnimatePresence>

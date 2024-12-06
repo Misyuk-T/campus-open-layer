@@ -1,11 +1,12 @@
 import { IoTriangle } from 'react-icons/io5';
+import { fetchDataAndOpenModal } from '@src/store/actions/modals.ts';
 import { useAppDispatch, useAppSelector } from '@src/store/hooks.ts';
-import { openModalByType } from '@src/store/reducers/modals.ts';
 import {
-  LocationTypeEnum,
-  SidebarChildrenItem,
-  SidebarItem
-} from '@src/types/global.ts';
+  MenuLinkChildrenContent,
+  MenuLinkParentContent,
+  PopupEntityTypeToPopupType
+} from '@src/types/sideMenu.ts';
+import { OFF_CAMPUS_INDICATOR } from '@src/utils/constants.ts';
 
 import {
   AccordionButton,
@@ -18,9 +19,9 @@ import {
 } from '@chakra-ui/react';
 
 interface SidebarTabProps {
-  tab: SidebarItem;
-  onSelectMenuItem: (tab: SidebarItem) => void;
-  onSelectLocation: (tab: SidebarChildrenItem) => void;
+  tab: MenuLinkParentContent;
+  onSelectMenuItem: (tab: MenuLinkParentContent) => void;
+  onSelectLocation: (tab: MenuLinkChildrenContent) => void;
 }
 
 const MenuItem = ({
@@ -29,26 +30,37 @@ const MenuItem = ({
   onSelectMenuItem
 }: SidebarTabProps) => {
   const dispatch = useAppDispatch();
-  const { modals } = useAppSelector((state) => state.modals);
+  const { openModal } = useAppSelector((state) => state.modals);
   const { activeLocation } = useAppSelector((state) => state.locations);
 
-  const isOffCampusItem = tab.label.includes('Off Campus');
-  const isSomeModalOpen = Object.values(modals).some((modal) => modal);
-  const isParent = tab.children && tab.children.length > 0;
-  const isSingleChild = isParent && tab.children?.length === 1;
-  const firstChild = tab.children?.[0];
+  const tabTitle = tab.attributes.title;
+  const isOffCampusItem = tabTitle.toLowerCase().includes(OFF_CAMPUS_INDICATOR);
 
-  const handleSelectItemMenu = () => {
-    onSelectMenuItem(tab);
-    if (isSingleChild && firstChild) {
-      onSelectLocation(firstChild);
+  const isSomeModalOpen = openModal.id !== null;
+  const isParent = tab.attributes.submenu && tab.attributes.submenu.length > 0;
+  const isSingleChild = isParent && tab.attributes.submenu?.length === 1;
+  const firstChild = tab.attributes.submenu?.[0];
+
+  const handleOpenModal = (location: MenuLinkChildrenContent) => {
+    const popupData = location.attributes.entity_data.attributes.popup_data;
+    if (popupData) {
+      const popupType = PopupEntityTypeToPopupType[popupData.type];
+      dispatch(fetchDataAndOpenModal(popupType, popupData.id));
     }
   };
 
-  const handleSelectLocation = (location: SidebarChildrenItem) => () => {
+  const handleSelectLocation = (location: MenuLinkChildrenContent) => () => {
+    const isCoordinatesExist = location.attributes.location;
     onSelectLocation(location);
-    if (location.type === LocationTypeEnum.offCampus) {
-      dispatch(openModalByType(location.location.modal.type));
+    if (isOffCampusItem && !isCoordinatesExist) {
+      handleOpenModal(location);
+    }
+  };
+
+  const handleSelectItemMenu = () => {
+    onSelectMenuItem(tab);
+    if (isSingleChild) {
+      handleSelectLocation(firstChild)();
     }
   };
 
@@ -75,7 +87,7 @@ const MenuItem = ({
           svg: { opacity: isParent ? 1 : 0 }
         }}
       >
-        <Text>{tab.label}</Text>
+        <Text>{tabTitle}</Text>
         <Box
           display={{ base: 'block', sm: 'none' }}
           transform='rotate(180deg)'
@@ -89,7 +101,7 @@ const MenuItem = ({
       {isParent && !isSingleChild && (
         <AccordionPanel bg='gray.25' p={0}>
           <VStack gap={0} py='8px'>
-            {tab.children?.map((child, index) => {
+            {tab.attributes.submenu?.map((child, index) => {
               const isActive = activeLocation?.id === child.id;
               const shouldHighlight = isActive && isSomeModalOpen;
 
@@ -112,7 +124,7 @@ const MenuItem = ({
                     w='100%'
                     whiteSpace='wrap'
                   >
-                    {child.label}
+                    {child.attributes.title}
                   </Text>
                 </Button>
               );

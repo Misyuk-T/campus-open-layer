@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { LiaPlusSolid } from 'react-icons/lia';
 import Slider from 'react-slick';
+import { fetchDataAndOpenModal } from '@src/store/actions/modals.ts';
 import { useAppDispatch, useAppSelector } from '@src/store/hooks';
 import { setActiveLocation } from '@src/store/reducers/locations';
-import { openModalByType } from '@src/store/reducers/modals';
-import { SidebarChildrenItem } from '@src/types/global';
+import {
+  MenuLinkChildrenContent,
+  PopupEntityTypeToPopupType
+} from '@src/types/sideMenu.ts';
 import { SIDEBAR_WIDTH } from '@src/utils/constants';
 
 import {
@@ -18,7 +21,7 @@ import {
 } from '@chakra-ui/react';
 
 interface OffCampusProps {
-  items: SidebarChildrenItem[];
+  items: MenuLinkChildrenContent[];
 }
 
 const OffCampus = ({ items }: OffCampusProps) => {
@@ -43,12 +46,16 @@ const OffCampus = ({ items }: OffCampusProps) => {
     touchMove: !sliderDisabled
   };
 
-  const handleSelectLocation = (location: SidebarChildrenItem) => () => {
-    dispatch(setActiveLocation(location));
-    if (location.location.modal) {
-      dispatch(openModalByType(location.location.modal.type));
-    }
-  };
+  const handleSelectLocation =
+    (selectedLocation: MenuLinkChildrenContent) => () => {
+      dispatch(setActiveLocation(selectedLocation));
+      const popupData =
+        selectedLocation.attributes.entity_data.attributes.popup_data;
+      if (popupData) {
+        const popupType = PopupEntityTypeToPopupType[popupData.type];
+        dispatch(fetchDataAndOpenModal(popupType, popupData.id));
+      }
+    };
 
   useEffect(() => {
     const calculateSliderDisabled = () => {
@@ -111,6 +118,9 @@ const OffCampus = ({ items }: OffCampusProps) => {
       >
         {items.map((location) => {
           const isActiveItem = activeLocation?.id === location.id;
+          const previewUrl =
+            location.attributes.entity_data.attributes.field_preview_image?.url;
+
           return (
             <Box key={location.id} px={{ base: '1.5px', md: '2.5px' }}>
               <Stack
@@ -129,12 +139,14 @@ const OffCampus = ({ items }: OffCampusProps) => {
                   justifyContent='center'
                   bg='gray.200'
                 >
-                  <Image
-                    src={location.location.preview}
-                    alt={location.label}
-                    objectFit='contain'
-                    objectPosition='top'
-                  />
+                  {previewUrl && (
+                    <Image
+                      src={previewUrl}
+                      alt={location.attributes.entity_data.attributes.title}
+                      objectFit='contain'
+                      objectPosition='top'
+                    />
+                  )}
                   <IconButton
                     opacity={isActiveItem ? '0' : '1'}
                     onClick={handleSelectLocation(location)}
@@ -174,7 +186,7 @@ const OffCampus = ({ items }: OffCampusProps) => {
                     noOfLines={1}
                     color='white'
                   >
-                    {location.label}
+                    {location.attributes.entity_data.attributes.title}
                   </Text>
                 </Box>
               </Stack>

@@ -1,26 +1,18 @@
 import { VideoGallery } from '@src/components';
+import { Popup1Data } from '@src/types/modals.ts';
+import { HtmlContent } from '@src/ui';
 
 import { Box, Flex, Image, Stack, Text } from '@chakra-ui/react';
 
 interface ImageAndVideoProps {
-  title: string;
-  text: string;
-  videos: { url: string; title?: string }[];
-  img: { url: string; alt?: string };
-  info: {
-    img: { url: string; alt?: string };
-    title: string;
-    text: string;
-  };
+  data: Popup1Data;
 }
 
-const ImageAndVideo = ({
-  title,
-  text,
-  videos,
-  info,
-  img
-}: ImageAndVideoProps) => {
+const ImageAndVideo = ({ data }: ImageAndVideoProps) => {
+  const { attributes } = data;
+  const title = attributes.field_title || '';
+  const text = attributes.field_location_description || '';
+
   return (
     <Stack
       w='100%'
@@ -34,21 +26,25 @@ const ImageAndVideo = ({
         justifyContent='center'
       >
         <Flex
-          h='auto'
-          maxHeight={{ base: '300px', sm: '350px', md: '400px', xl: 'none' }}
+          h='fit-content'
+          maxHeight={{ base: 'none', xl: '469px' }}
           width={{ base: '100%', xl: '45%' }}
+          overflow='hidden'
+          alignItems='center'
         >
-          <Image
-            src={img.url}
-            alt={img.alt}
-            height={{ base: 'auto', xl: '100%' }}
-            width='100%'
-            objectFit='cover'
-          />
+          {attributes.field_location_image && (
+            <Image
+              src={attributes.field_location_image.url}
+              alt={attributes.field_location_image.alt}
+              height={{ base: 'auto', xl: '100%' }}
+              width='100%'
+              objectFit='cover'
+            />
+          )}
         </Flex>
         <Box width={{ base: '100%', xl: '55%' }}>
           <VideoGallery
-            videoUrls={videos}
+            videoUrls={attributes.field_campus_video || []}
             sliderOptions={{ slidesToShow: 2 }}
             activeSlideStyles={{ mb: '20px' }}
           />
@@ -68,8 +64,8 @@ const ImageAndVideo = ({
             </Text>
           )}
           {text && (
-            <Text textStyle='paragraphMedium' lineHeight='140%'>
-              {text}
+            <Text textStyle='paragraphMedium' lineHeight='140%' as='div'>
+              <HtmlContent content={text} />
             </Text>
           )}
         </Stack>
@@ -81,22 +77,24 @@ const ImageAndVideo = ({
           bg='gray.750'
           width={{ base: '100%', '3xl': '55%' }}
         >
-          <Image
-            src={info.img.url}
-            alt={info.img.alt}
-            w={{ base: '40px', md: '45px', lg: '50px' }}
-            h={{ base: '40px', md: '45px', lg: '50px' }}
-          />
+          {attributes.field_headline_icon && (
+            <Image
+              src={attributes.field_headline_icon.url}
+              alt={attributes.field_headline_icon.alt}
+              w={{ base: '40px', md: '45px', lg: '50px' }}
+              h={{ base: '40px', md: '45px', lg: '50px' }}
+            />
+          )}
           <Stack gap='13px'>
             <Text textStyle='h3' as='h3'>
-              {info.title}
+              {attributes.field_headline_title}
             </Text>
             <Text
               fontSize={{ base: '14px', sm: '16px', md: '18px' }}
               fontWeight={500}
               lineHeight='140%'
             >
-              {info.text}
+              {attributes.field_headline_summary}
             </Text>
           </Stack>
         </Flex>
